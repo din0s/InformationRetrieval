@@ -1,0 +1,29 @@
+plugins {
+    id 'java'
+    id 'application'
+    id "com.github.johnrengelman.shadow" version "6.1.0"
+}
+
+group 'me.din0s'
+version '1.0'
+
+mainClassName = 'me.din0s.Main'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.12.0'
+
+    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.0'
+}
+
+shadowJar {
+    minimize()
+    archiveBaseName.set('indexer')
+    archiveClassifier.set('')
+    archiveVersion.set('')
+}
