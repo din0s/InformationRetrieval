@@ -1,0 +1,58 @@
+.Results {
+  > .SearchForm {
+    align-items: center;
+    display: flex;
+    padding: 16px;
+
+    > form {
+      height: 28px;
+    }
+
+    img {
+      height: 32px;
+      margin-right: 16px;
+    }
+  }
+
+  &-list {
+    list-style: none;
+    padding: 0 28px;
+
+    :not(:last-of-type) {
+      p {
+        margin-bottom: 16px;
+      }
+    }
+
+    > li {
+      display: flex;
+      flex-direction: row;
+    }
+  }
+
+  &-arrows {
+    display: flex;
+    flex-direction: column;
+    margin-right: 10px;
+
+    > i {
+      cursor: pointer;
+      font-size: 20px;
+      font-style: normal;
+      font-weight: bold;
+      height: 20px;
+    }
+
+    &_up:hover {
+      color: green;
+    }
+
+    &_down:hover {
+      color: red;
+    }
+  }
+
+  &-content {
+    margin: 0;
+  }
+}

@@ -1,0 +1,16 @@
+.Home {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  height: 75vh;
+
+  > .SearchForm {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+
+    a {
+      margin: 16px 0;
+    }
+  }
+}

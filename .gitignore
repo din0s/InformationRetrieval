@@ -1,2 +1,8 @@
 # results directory
 results/
+
+# docs directory
+docs/
+
+# json files
+*.json

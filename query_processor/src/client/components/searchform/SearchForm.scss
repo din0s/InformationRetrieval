@@ -1,0 +1,20 @@
+.SearchForm {
+  > form {
+    height: 32px;
+
+    > input {
+      border: 1px solid rgba(0, 0, 0, 0.3);
+      border-radius: 4px;
+      height: 100%;
+
+      &[type="text"] {
+        height: 81.25%;
+        padding: 2px 8px;
+      }
+    }
+  }
+
+  &-button {
+    margin-left: 10px;
+  }
+}

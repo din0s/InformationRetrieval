@@ -139,3 +139,6 @@ gradle-app.setting
 
 # JSON files
 *.json
+
+# Docs directory
+docs/
