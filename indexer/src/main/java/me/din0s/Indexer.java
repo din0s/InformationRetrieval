@@ -30,9 +30,9 @@ class Indexer {
                     Files.deleteIfExists(fp);
                 } catch (IOException ignored) {}
             });
-            Files.deleteIfExists(p);
+        } else {
+            Files.createDirectory(p);
         }
-        Files.createDirectory(p);
         this.docSizes = new HashMap<>();
         this.index = buildIndex(resultsPath, summariesPath);
     }
@@ -86,21 +86,21 @@ class Indexer {
                 ));
     }
 
-    public void writeToFile(String indexerPath, String docSizesPath) throws IOException {
+    public void writeToFile(String indexPath) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         String indexJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(index);
         String docSizesJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(docSizes);
-        Files.writeString(Path.of(indexerPath), indexJson);
-        Files.writeString(Path.of(docSizesPath), docSizesJson);
+        Files.writeString(Path.of(indexPath + "/index.json"), indexJson);
+        Files.writeString(Path.of(indexPath + "/docSizes.json"), docSizesJson);
     }
 
-    public static Indexer readFromFile(String indexerPath, String docSizesPath) throws IOException {
+    public static Indexer readFromFile(String indexPath) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         TypeReference<Map<String, List<TermTuple>>> indexTypeRef = new TypeReference<>() {};
         TypeReference<Map<Integer, Integer>> docSizesTypeRef = new TypeReference<>() {};
 
-        String indexJson = String.join("", Files.readAllLines(Path.of(indexerPath)));
-        String docSizesJson = String.join("", Files.readAllLines(Path.of(docSizesPath)));
+        String indexJson = String.join("", Files.readAllLines(Path.of(indexPath + "/index.json")));
+        String docSizesJson = String.join("", Files.readAllLines(Path.of(indexPath + "/docSizes.json")));
         Map<String, List<TermTuple>> index = mapper.readValue(indexJson, indexTypeRef);
         Map<Integer, Integer> docSizes = mapper.readValue(docSizesJson, docSizesTypeRef);
         return new Indexer(index, docSizes);

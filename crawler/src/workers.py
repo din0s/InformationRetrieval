@@ -2,9 +2,9 @@ from bs4 import BeautifulSoup
 from threading import Thread
 
 import os
-# import random
-import re  # regex
+import re
 import requests
+import sys
 import time
 
 INVALID_HREF_PATTERN = re.compile(r"(?:(?:mailto|tel):.*)|(?:{{.*}})")
@@ -40,6 +40,7 @@ class CrawlerWorker(Thread):
 
         # time.sleep(random.random() * 3)
         print("crawling %s (%d remaining)" % (website, self.pages_left.get()))
+        sys.stdout.flush()
 
         try:
             soup, html = self._fetch_page(website)

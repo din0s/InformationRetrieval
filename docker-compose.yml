@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  crawler:
+    build: ./crawler
+    volumes:
+      - pages:/krepa/results
+    environment:
+      WEBSITE: www.bbc.com
+      PAGES: 100
+      APPEND: 1
+      THREADS: 4
+  indexer:
+    build: ./indexer
+    volumes:
+      - pages:/krepa/results
+      - index:/krepa/index
+      - summaries:/krepa/summaries
+  query_processor:
+    build: ./query_processor
+    ports:
+      - 8080:8080
+    volumes:
+      - pages:/krepa/results
+      - index:/krepa/index
+      - summaries:/krepa/summaries
+
+volumes:
+  pages: {}
+  index: {}
+  summaries: {}

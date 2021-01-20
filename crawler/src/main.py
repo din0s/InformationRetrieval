@@ -4,9 +4,17 @@ import os
 import shutil
 import sys
 
+def rmdir(dir):
+    for f in os.listdir(dir):
+        p = os.path.join(dir, f)
+        if os.path.isdir(p):
+            rmdir(p)
+        else:
+            os.remove(p)
+
 def get_args():
     if len(sys.argv) != 5:
-        raise Exception("Invalid Usage: %s <website> <pages> <append> <threads>" % sys.argv[0])
+        raise Exception(f"Invalid Usage:\nReceived: {' '.join(sys.argv)}\nExpected: {sys.argv[0]} <website> <pages> <append> <threads>")
 
     website = sys.argv[1]
     pages_num = int(sys.argv[2])
@@ -16,9 +24,9 @@ def get_args():
 
 if __name__ == "__main__":
     website, pages_num, append, threads_num = get_args()
-    
+
     if not append and os.path.exists("results"):
-        shutil.rmtree("results")
+        rmdir("results")
 
     visor = CrawlerSupervisor(pages_num, threads_num)
     visor.start(website)

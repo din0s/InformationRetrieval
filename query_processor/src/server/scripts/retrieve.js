@@ -3,11 +3,9 @@ import Heap from "heap";
 import fs from "fs";
 import { resolve } from "path";
 
-const indexJson = process.env.INDEX_JSON || "../index.json";
-const docSizeJson = process.env.DOC_SIZE_JSON || "../docSize.json";
-
-const indexPath = resolve(process.cwd(), indexJson);
-const docSizePath = resolve(process.cwd(), docSizeJson);
+const indexDir = process.env.INDEX_DIR || "../index/";
+const indexPath = resolve(process.cwd(), indexDir, "index.json");
+const docSizePath = resolve(process.cwd(), indexDir, "docSizes.json");
 
 const index = {};
 const n_i = {};
