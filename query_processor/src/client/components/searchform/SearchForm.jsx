@@ -8,10 +8,7 @@ const SearchForm = () => {
   return (
     <div className="SearchForm">
       <a href="/">
-        <img
-          src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"
-          alt="Google Logo"
-        />
+        <img src="logo.png" alt="Logo" />
       </a>
       <form method="GET" action="/results">
         <input type="text" name="q" defaultValue={query.get("q")} />
