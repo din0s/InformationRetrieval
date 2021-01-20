@@ -55,6 +55,8 @@ const Results = () => {
                 <a
                   className="Results-link"
                   href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   children={getDisplayURL(url)}
                 />
                 <p className="Results-content" children={summary} />
