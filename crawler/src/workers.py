@@ -6,7 +6,6 @@ import os
 import re  # regex
 import requests
 import time
-import trafilatura
 
 INVALID_HREF_PATTERN = re.compile(r"(?:(?:mailto|tel):.*)|(?:{{.*}})")
 URL_PATTERN = re.compile(r"(https?:\/\/([^\?#]*)).*")
@@ -28,7 +27,7 @@ class CrawlerWorker(Thread):
 
     def _crawl_site(self, website):
         website = self._fix_url(website)
-        if (self.visited.has(website)):
+        if self.visited.has(website):
             # already visited
             return
 
@@ -70,17 +69,33 @@ class CrawlerWorker(Thread):
         return soup, soup.prettify()
 
     def _extract_text(self, html):
-        return trafilatura.extract(html)
+        soup = BeautifulSoup(html, 'html.parser')
+        title = soup.title.string.strip()
+        base = soup.body.main or soup.body
+
+        content = base.get_text("\n", strip=True)
+        if not content.strip():
+            return None
+
+        desc = soup.find("meta", attrs={"name": "description"})
+        if desc:
+            return f"{title}\n{desc['content'].strip()}\n{content}"
+
+        for t in base.find_all("div"):
+            txt = t.get_text(strip=True)
+            if len(txt) > 250:
+                return f"{title}\n{txt}\n{content}"
+        return f"{title}\nNo summary available.\n{content}"
 
     def _write_to_file(self, url, text):
         match = URL_PATTERN.search(url)
         page = match.group(2).strip("/").split("/")
 
         if len(page) == 1:
-            page.append("index.html")
+            page.append("#")
 
-        if "." not in page[-1]:
-            page[-1] += ".html"
+        if "." not in page[-1] and not page[-1].endswith("#"):
+            page[-1] += "#"
 
         os.makedirs("results/" + "/".join(page[:-1]), exist_ok=True)
         with open("results/" + "/".join(page), "w", encoding="utf8") as f:

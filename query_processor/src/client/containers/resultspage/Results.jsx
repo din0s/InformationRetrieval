@@ -36,7 +36,7 @@ const Results = () => {
           </li>
         )}
         {Object.keys(results).map((index) => {
-          const { url, content } = results[index];
+          const { url, summary } = results[index];
           return (
             <li key={index}>
               <span className="Results-arrows">
@@ -57,7 +57,7 @@ const Results = () => {
                   href={url}
                   children={getDisplayURL(url)}
                 />
-                <p className="Results-content" children={content} />
+                <p className="Results-content" children={summary} />
               </span>
             </li>
           );

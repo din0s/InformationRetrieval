@@ -1,8 +1,8 @@
 # results directory
 results/
 
-# docs directory
-docs/
+# summaries directory
+summaries/
 
 # json files
 *.json

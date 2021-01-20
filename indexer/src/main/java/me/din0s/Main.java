@@ -18,10 +18,10 @@ public class Main {
                 System.out.printf("%s -> [%d: %s]%n", term, list.size(), s);
             });
         } else {
-            // java -jar indexer.jar ./results/ ./index.json ./docSize.json ./docs/
+            // java -jar indexer.jar ./results/ ./index.json ./docSize.json ./summaries/
             String resultsPath = args.length < 1 ? "./results/" : args[0];
-            String docsDir = args.length < 4 ? "./docs/" : args[3];
-            Indexer indexer = new Indexer(resultsPath, docsDir);
+            String summariesPath = args.length < 4 ? "./summaries/" : args[3];
+            Indexer indexer = new Indexer(resultsPath, summariesPath);
             indexer.writeToFile(indexPath, docSizePath);
         }
     }

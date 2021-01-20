@@ -22,8 +22,8 @@ class Indexer {
     @JsonSerialize(keyUsing = TermTupleSerializer.class)
     private final Map<String, List<TermTuple>> index;
 
-    Indexer(String resultsPath, String docsPath) throws IOException {
-        Path p = Path.of(docsPath);
+    Indexer(String resultsPath, String summariesPath) throws IOException {
+        Path p = Path.of(summariesPath);
         if (Files.exists(p)) {
             Files.walk(p).forEach(fp -> {
                 try {
@@ -34,7 +34,7 @@ class Indexer {
         }
         Files.createDirectory(p);
         this.docSizes = new HashMap<>();
-        this.index = buildIndex(resultsPath, docsPath);
+        this.index = buildIndex(resultsPath, summariesPath);
     }
 
     Indexer(Map<String, List<TermTuple>> index, Map<Integer, Integer> docSizes) {
@@ -48,14 +48,16 @@ class Indexer {
     }
 
     private void writeEntry(int docId, String resultsPath, Path ogPath, String entryDir) throws IOException {
-        String lines = String.join("", Files.readAllLines(ogPath));
-        String newPath = String.format("%s%s", entryDir, docId);
+        List<String> lines = Files.readAllLines(ogPath);
+        String title = lines.get(0);
+        String summary = lines.get(1);
         String url = ogPath.toString().substring(resultsPath.length());
-        String newContent = String.format("https://%s%n%s", url, lines);
+        String newContent = String.format("https://%s%n%s%n%s", url, title, summary);
+        String newPath = String.format("%s%s", entryDir, docId);
         Files.writeString(Path.of(newPath), newContent);
     }
 
-    private Map<String, List<TermTuple>> buildIndex(String resultsPath, String docsPath) throws IOException {
+    private Map<String, List<TermTuple>> buildIndex(String resultsPath, String summariesPath) throws IOException {
         AtomicInteger docIndex = new AtomicInteger(0);
         return Files.walk(Path.of(resultsPath))
                 .filter(Files::isRegularFile)
@@ -63,6 +65,7 @@ class Indexer {
                     int docId = docIndex.getAndIncrement();
                     try {
                         Collection<TermTriplet> res = Files.lines(filePath)
+                                .skip(2)
                                 .map(line -> line.split("\\s+"))
                                 .flatMap(Arrays::stream)
                                 .map(this::preprocess)
@@ -70,7 +73,7 @@ class Indexer {
                                 .map(t -> new TermTriplet(t, docId, 1))
                                 .collect(Collectors.toMap(TermTriplet::getTerm, Function.identity(), TermTriplet::merge))
                                 .values();
-                        writeEntry(docId, resultsPath, filePath, docsPath);
+                        writeEntry(docId, resultsPath, filePath, summariesPath);
                         docSizes.put(docId, res.size());
                         return res.stream();
                     } catch (IOException e) {

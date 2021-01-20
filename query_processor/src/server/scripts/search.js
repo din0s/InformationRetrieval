@@ -2,8 +2,8 @@ import fs from "fs";
 import retrieve from "./retrieve";
 import { resolve } from "path";
 
-const docsDir = process.env.DOCS_DIR || "../docs/";
-const docsPath = resolve(process.cwd(), docsDir);
+const summariesDir = process.env.SUMMARIES_DIR || "../summaries/";
+const summariesPath = resolve(process.cwd(), summariesDir);
 
 export default (query, k) => {
   return retrieve(query, k)
@@ -11,12 +11,16 @@ export default (query, k) => {
     .sort((d1, d2) => d2.score - d1.score)
     .map((doc) => {
       const lines = fs
-        .readFileSync(`${docsPath}/${doc.d}`)
+        .readFileSync(`${summariesPath}/${doc.d}`)
         .toString()
         .split("\n");
       const url = lines[0];
-      let content = lines.slice(1).join("");
-      content = content.substring(0, Math.min(256, content.length));
-      return { url, content };
+      let summary = lines.slice(1).join("");
+      if (summary.length > 256) {
+        const lastIndex = summary.lastIndexOf(" ");
+        summary = summary.substring(0, lastIndex) + "...";
+      }
+      
+      return { url, summary };
     });
 };
