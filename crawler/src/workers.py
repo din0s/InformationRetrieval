@@ -1,15 +1,20 @@
 from bs4 import BeautifulSoup
 from threading import Thread
+from nltk.stem import PorterStemmer
+from nltk.corpus import stopwords
 
+import nltk
 import os
 import re
 import requests
 import sys
-import time
 
 INVALID_HREF_PATTERN = re.compile(r"(?:(?:mailto|tel):.*)|(?:{{.*}})")
 URL_PATTERN = re.compile(r"(https?:\/\/([^\?#]*)).*")
 
+nltk.download('stopwords', quiet=True)
+STOPWORDS = set(stopwords.words('english'))
+STEMMER = PorterStemmer()
 
 class CrawlerWorker(Thread):
     def __init__(self, pages_left, sites, visited):
@@ -22,11 +27,11 @@ class CrawlerWorker(Thread):
     def run(self):
         while self.pages_left.get() > 0:
             website = self.sites.get()
-            self._crawl_site(website)
+            self.__crawl_site(website)
             self.sites.task_done()
 
-    def _crawl_site(self, website):
-        website = self._fix_url(website)
+    def __crawl_site(self, website):
+        website = self.__fix_url(website)
         if self.visited.has(website):
             # already visited
             return
@@ -43,38 +48,61 @@ class CrawlerWorker(Thread):
         sys.stdout.flush()
 
         try:
-            soup, html = self._fetch_page(website)
+            soup, html = self.__fetch_page(website)
         except:
             print("Something went wrong when fetching", website)
             self.pages_left.increment()
             return
 
-        text = self._extract_text(html)
+        text = self.__extract_text(html, website)
         if text is None:
             print("Found empty page")
             self.pages_left.increment()
         else:
-            self._write_to_file(website, text)
-            self._find_next(website, soup)
+            self.__write_to_file(website, text)
+            self.__find_next(website, soup)
 
-    def _fix_url(self, url):
+    def __fix_url(self, url):
         if not URL_PATTERN.match(url):
             url = "http://" + url
         if not url.endswith("/"):
             url += "/"
         return url
 
-    def _fetch_page(self, url):
+    def __fetch_page(self, url):
         req = requests.get(url)
         soup = BeautifulSoup(req.content, 'html.parser')
         return soup, soup.prettify()
 
-    def _extract_text(self, html):
+    def __preprocess(self, text):
+        # https://towardsdatascience.com/all-you-need-to-know-about-text-preprocessing-for-nlp-and-machine-learning-bc1c5765ff67
+        result = []
+        for word in text.split():
+            # Lowercasing
+            word = word.lower()
+
+            # Punctuation Removal
+            word = re.sub(r'[^\w\s]', '', word)
+
+            # Stopword Removal
+            if not word or word in STOPWORDS:
+                continue
+
+            # Stemming
+            word = STEMMER.stem(word)
+
+            result.append(word)
+        return " ".join(result)
+
+    def __extract_text(self, html, url):
         soup = BeautifulSoup(html, 'html.parser')
-        title = soup.title.string.strip()
+        if soup.find("title"):
+            title = soup.find("title").string.strip()
+        else:
+            title = url
         base = soup.body.main or soup.body
 
-        content = base.get_text("\n", strip=True)
+        content = self.__preprocess(base.get_text("\n", strip=True))
         if not content.strip():
             return None
 
@@ -88,7 +116,7 @@ class CrawlerWorker(Thread):
                 return f"{title}\n{txt}\n{content}"
         return f"{title}\nNo summary available.\n{content}"
 
-    def _write_to_file(self, url, text):
+    def __write_to_file(self, url, text):
         match = URL_PATTERN.search(url)
         page = match.group(2).strip("/").split("/")
 
@@ -102,7 +130,7 @@ class CrawlerWorker(Thread):
         with open("results/" + "/".join(page), "w", encoding="utf8") as f:
             f.write(text)
 
-    def _find_next(self, base, soup):
+    def __find_next(self, base, soup):
         match = URL_PATTERN.search(base)
         domain = "http://" + match.group(2).split("/")[0]
 

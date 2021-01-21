@@ -42,11 +42,6 @@ class Indexer {
         this.index = index;
     }
 
-    private String preprocess(String t) {
-        // TODO: stemming etc here or in crawler?
-        return t;
-    }
-
     private void writeEntry(int docId, String resultsPath, Path ogPath, String entryDir) throws IOException {
         List<String> lines = Files.readAllLines(ogPath);
         String title = lines.get(0);
@@ -68,7 +63,6 @@ class Indexer {
                                 .skip(2)
                                 .map(line -> line.split("\\s+"))
                                 .flatMap(Arrays::stream)
-                                .map(this::preprocess)
                                 .filter(Objects::nonNull)
                                 .map(t -> new TermTriplet(t, docId, 1))
                                 .collect(Collectors.toMap(TermTriplet::getTerm, Function.identity(), TermTriplet::merge))

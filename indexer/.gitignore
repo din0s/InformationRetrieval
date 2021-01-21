@@ -142,3 +142,8 @@ gradle-app.setting
 
 # Docs directory
 docs/
+
+# VSCode config files
+.classpath
+.project
+org.eclipse.buildship.core.prefs
