@@ -1,16 +1,21 @@
-import cosine from "./cosine";
-import Heap from "heap";
 import fs from "fs";
-import { resolve } from "path";
+import Heap from "heap";
+import path from "path";
+import webpage from "../webpage";
+import cosine from "./cosine";
 
-const indexDir = process.env.INDEX_DIR || "../index/";
-const indexPath = resolve(process.cwd(), indexDir, "index.json");
-const docSizePath = resolve(process.cwd(), indexDir, "docSizes.json");
+let indexPath = process.env.INDEXER_PATH || "indexer/index.json";
+indexPath = path.resolve(process.cwd(), "..", indexPath);
 
 const index = {};
 const n_i = {};
 
 fs.readFile(indexPath, (err, data) => {
+  if (err) {
+    console.error(err);
+    return;
+  }
+
   const file = JSON.parse(data);
   Object.keys(file).forEach((term) => {
     const freqs = file[term];
@@ -22,23 +27,25 @@ fs.readFile(indexPath, (err, data) => {
       index[term][doc] = occurrences;
     });
     n_i[term] = freqs.length;
-  });
-});
+  })
+})
 
-let docSizes = {};
-let docIds = [];
+const docSizes = {};
+const docIds = [];
 let N = 0;
-fs.readFile(docSizePath, (err, data) => {
-  docSizes = JSON.parse(data);
-  docIds = Object.keys(docSizes);
-  N = docIds.length;
+webpage.find().then(docs => {
+  N = docs.length;
+  docs.forEach(doc => {
+    docSizes[doc._id] = doc.size;
+    docIds.push(doc._id);
+  })
 });
 
-export default (q, k) => {
+const retrieve = (q, k) => {
   const scoredDocs = [];
-  docIds.forEach((d) => {
-    const score = cosine(q, d, { index, docSizes, n_i, N });
-    scoredDocs.push({ d, score });
+  docIds.forEach((_id) => {
+    const score = cosine(q, _id, { index, docSizes, n_i, N });
+    scoredDocs.push({ _id, score });
   });
 
   const heap = new Heap((r1, r2) => r1.score - r2.score);
@@ -55,3 +62,5 @@ export default (q, k) => {
 
   return heap.toArray();
 };
+
+export default retrieve;

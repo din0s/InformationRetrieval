@@ -1,16 +1,6 @@
 from supervisors import CrawlerSupervisor
 
-import os
-import shutil
 import sys
-
-def rmdir(dir):
-    for f in os.listdir(dir):
-        p = os.path.join(dir, f)
-        if os.path.isdir(p):
-            rmdir(p)
-        else:
-            os.remove(p)
 
 def get_args():
     if len(sys.argv) != 5:
@@ -24,9 +14,5 @@ def get_args():
 
 if __name__ == "__main__":
     website, pages_num, append, threads_num = get_args()
-
-    if not append and os.path.exists("results"):
-        rmdir("results")
-
-    visor = CrawlerSupervisor(pages_num, threads_num)
+    visor = CrawlerSupervisor(pages_num, threads_num, append)
     visor.start(website)

@@ -20,13 +20,34 @@
 
     :not(:last-of-type) {
       p {
-        margin-bottom: 16px;
+        margin-bottom: 20px;
       }
     }
 
     > li {
       display: flex;
       flex-direction: row;
+
+      .Results-item {
+        > a {
+          text-decoration: none;
+
+          > p {
+            color: rgba(0, 0, 0, 0.75);
+            margin: 0;
+          }
+
+          > h4 {
+            color: #3f7fbf;
+            font-size: 20px;
+            margin: 0;
+          }
+        }
+
+        > p {
+          font-size: 18px;
+        }
+      }
     }
   }
 

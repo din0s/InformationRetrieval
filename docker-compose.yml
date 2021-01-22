@@ -1,31 +1,78 @@
-version: '3'
+version: "3"
 
 services:
+  mongo:
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_INITDB_ROOT_DATABASE=${MONGO_DATABASE}
+    volumes:
+      - db:/data/db
+    networks:
+      - mongo_net
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_USERNAME}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_PASSWORD}
+    networks:
+      - mongo_net
+    depends_on:
+      - mongo
+
   crawler:
     build: ./crawler
-    volumes:
-      - pages:/krepa/results
     environment:
-      WEBSITE: www.bbc.com
-      PAGES: 100
-      APPEND: 1
-      THREADS: 4
+      - WEBSITE=${WEBSITE}
+      - PAGES=${PAGES}
+      - APPEND=${APPEND}
+      - THREADS=${THREADS}
+      - MONGO_USERNAME=${MONGO_USERNAME}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_DATABASE=${MONGO_DATABASE}
+    networks:
+      - mongo_net
+    depends_on:
+      - mongo
+
   indexer:
     build: ./indexer
+    environment:
+      - MONGO_USERNAME=${MONGO_USERNAME}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_DATABASE=${MONGO_DATABASE}
     volumes:
-      - pages:/krepa/results
-      - index:/krepa/index
-      - summaries:/krepa/summaries
+      - index:/krepa/indexer
+    networks:
+      - mongo_net
+    depends_on:
+      - mongo
+
   query_processor:
     build: ./query_processor
+    environment:
+      - MONGO_USERNAME=${MONGO_USERNAME}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_DATABASE=${MONGO_DATABASE}
+    volumes:
+      - index:/krepa/indexer
     ports:
       - 8080:8080
-    volumes:
-      - pages:/krepa/results
-      - index:/krepa/index
-      - summaries:/krepa/summaries
+    networks:
+      - mongo_net
+    depends_on:
+      - mongo
 
 volumes:
-  pages: {}
+  db: {}
   index: {}
-  summaries: {}
+
+networks:
+  mongo_net:
+    driver: bridge

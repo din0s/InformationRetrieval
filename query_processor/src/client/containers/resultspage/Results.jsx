@@ -36,31 +36,33 @@ const Results = () => {
           </li>
         )}
         {Object.keys(results).map((index) => {
-          const { url, summary } = results[index];
+          const { _id, url, title, summary } = results[index];
           return (
-            <li key={index}>
-              <span className="Results-arrows">
+            <li key={_id}>
+              <div className="Results-arrows">
                 <i
                   className="Results-arrows_up"
                   children={"⏶"}
-                  onClick={() => upvoteResult(index)}
+                  onClick={() => upvoteResult(_id)}
                 />
                 <i
                   className="Results-arrows_down"
                   children={"⏷"}
-                  onClick={() => downvoteResult(index)}
+                  onClick={() => downvoteResult(_id)}
                 />
-              </span>
-              <span>
+              </div>
+              <div className="Results-item">
                 <a
                   className="Results-link"
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  children={getDisplayURL(url)}
-                />
+                >
+                  <p children={getDisplayURL(url)} />
+                  <h4 children={title} />
+                </a>
                 <p className="Results-content" children={summary} />
-              </span>
+              </div>
             </li>
           );
         })}

@@ -6,3 +6,6 @@ summaries/
 
 # json files
 *.json
+
+# env file
+.env

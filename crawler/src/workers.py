@@ -4,7 +4,6 @@ from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 
 import nltk
-import os
 import re
 import requests
 import sys
@@ -17,9 +16,9 @@ STOPWORDS = set(stopwords.words('english'))
 STEMMER = PorterStemmer()
 
 class CrawlerWorker(Thread):
-    def __init__(self, pages_left, sites, visited):
+    def __init__(self, db, pages_left, sites, visited):
         Thread.__init__(self)
-        # self.daemon = True
+        self.db = db
         self.pages_left = pages_left
         self.sites = sites
         self.visited = visited
@@ -27,7 +26,10 @@ class CrawlerWorker(Thread):
     def run(self):
         while self.pages_left.get() > 0:
             website = self.sites.get()
-            self.__crawl_site(website)
+            try:
+                self.__crawl_site(website)
+            except:
+                self.pages_left.increment()
             self.sites.task_done()
 
     def __crawl_site(self, website):
@@ -43,7 +45,6 @@ class CrawlerWorker(Thread):
         self.pages_left.decrement()
         self.visited.add(website)
 
-        # time.sleep(random.random() * 3)
         print("crawling %s (%d remaining)" % (website, self.pages_left.get()))
         sys.stdout.flush()
 
@@ -54,12 +55,12 @@ class CrawlerWorker(Thread):
             self.pages_left.increment()
             return
 
-        text = self.__extract_text(html, website)
-        if text is None:
+        info = self.__extract_info(html, website)
+        if info is None:
             print("Found empty page")
             self.pages_left.increment()
         else:
-            self.__write_to_file(website, text)
+            self.db.insert(info)
             self.__find_next(website, soup)
 
     def __fix_url(self, url):
@@ -92,9 +93,9 @@ class CrawlerWorker(Thread):
             word = STEMMER.stem(word)
 
             result.append(word)
-        return " ".join(result)
+        return result
 
-    def __extract_text(self, html, url):
+    def __extract_info(self, html, url):
         soup = BeautifulSoup(html, 'html.parser')
         if soup.find("title"):
             title = soup.find("title").string.strip()
@@ -103,32 +104,29 @@ class CrawlerWorker(Thread):
         base = soup.body.main or soup.body
 
         content = self.__preprocess(base.get_text("\n", strip=True))
-        if not content.strip():
+        if not content:
             return None
+
+        url = url.strip("#")
+        info = {
+            "url": url,
+            "title": title,
+            "content": content
+        }
 
         desc = soup.find("meta", attrs={"name": "description"})
         if desc:
-            return f"{title}\n{desc['content'].strip()}\n{content}"
+            info['summary'] = desc['content'].strip()
+            return info
 
         for t in base.find_all("div"):
             txt = t.get_text(strip=True)
             if len(txt) > 250:
-                return f"{title}\n{txt}\n{content}"
-        return f"{title}\nNo summary available.\n{content}"
+                info['summary'] = txt
+                return info
 
-    def __write_to_file(self, url, text):
-        match = URL_PATTERN.search(url)
-        page = match.group(2).strip("/").split("/")
-
-        if len(page) == 1:
-            page.append("#")
-
-        if "." not in page[-1] and not page[-1].endswith("#"):
-            page[-1] += "#"
-
-        os.makedirs("results/" + "/".join(page[:-1]), exist_ok=True)
-        with open("results/" + "/".join(page), "w", encoding="utf8") as f:
-            f.write(text)
+        info['summary'] = "No summary available"
+        return info
 
     def __find_next(self, base, soup):
         match = URL_PATTERN.search(base)

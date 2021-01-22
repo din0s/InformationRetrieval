@@ -146,6 +146,3 @@ cython_debug/
 
 # Local History for Visual Studio Code
 .history/
-
-# Results directory
-results/*

@@ -2,8 +2,8 @@ import idf from "./idf";
 import preprocess from "./preprocess";
 import tf from "./tf";
 
-export default (query, d, { index, docSizes, n_i, N }) => {
-  const terms = new Set(preprocess(query).trim().split(/\s+/));
+const cosine = (query, d, { index, docSizes, n_i, N }) => {
+  const terms = new Set(preprocess(query));
 
   let sum = 0;
   terms.forEach((t) => {
@@ -24,3 +24,5 @@ export default (query, d, { index, docSizes, n_i, N }) => {
   const cosine = sum / (L_q * L_d);
   return cosine;
 };
+
+export default cosine;
