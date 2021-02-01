@@ -2,8 +2,16 @@ import webpage from "../webpage";
 import retrieve from "./retrieve";
 
 const search = async (query, k) => {
+  const freqs = {};
+  query.split(/\s+/g).forEach((t) => {
+    freqs[t] = 1;
+  });
+  return await searchWithFreqs(freqs, k, []);
+};
+
+const searchWithFreqs = async (query, k, excludedIds) => {
   const result = await Promise.all(
-    retrieve(query, k)
+    retrieve(query, k, excludedIds)
       .filter((d) => d.score > 0)
       .sort((d1, d2) => d2.score - d1.score)
       .map(async (doc) => {
@@ -24,4 +32,4 @@ const search = async (query, k) => {
   return result;
 };
 
-export default search;
+export { search, searchWithFreqs };

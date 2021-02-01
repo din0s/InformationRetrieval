@@ -6,7 +6,7 @@ const webpageSchema = new Schema({
   summary: String,
   content: [String],
   size: Number,
-  term: [String]
-})
+  terms: [String],
+});
 
 export default mongoose.model("webpage", webpageSchema);

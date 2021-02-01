@@ -1,6 +1,7 @@
 import fs from "fs";
 import Heap from "heap";
 import path from "path";
+import strToTuple from "./str-to-tuple";
 import webpage from "../webpage";
 import cosine from "./cosine";
 
@@ -21,32 +22,34 @@ fs.readFile(indexPath, (err, data) => {
     const freqs = file[term];
     index[term] = {};
     freqs.forEach((freq) => {
-      const tuple = JSON.parse(freq.replace(/\(/g, "[").replace(/\)/g, "]"));
+      const tuple = strToTuple(freq);
       const doc = tuple[0];
       const occurrences = tuple[1];
       index[term][doc] = occurrences;
     });
     n_i[term] = freqs.length;
-  })
-})
+  });
+});
 
 const docSizes = {};
 const docIds = [];
 let N = 0;
-webpage.find().then(docs => {
+webpage.find().then((docs) => {
   N = docs.length;
-  docs.forEach(doc => {
+  docs.forEach((doc) => {
     docSizes[doc._id] = doc.size;
-    docIds.push(doc._id);
-  })
+    docIds.push(doc._id.toString());
+  });
 });
 
-const retrieve = (q, k) => {
+const retrieve = (q, k, excludedIds) => {
   const scoredDocs = [];
-  docIds.forEach((_id) => {
-    const score = cosine(q, _id, { index, docSizes, n_i, N });
-    scoredDocs.push({ _id, score });
-  });
+  docIds
+    .filter((_id) => !excludedIds.includes(_id))
+    .forEach((_id) => {
+      const score = cosine(q, _id, { index, docSizes, n_i, N });
+      scoredDocs.push({ _id, score });
+    });
 
   const heap = new Heap((r1, r2) => r1.score - r2.score);
   for (let i = 0; i < k; ++i) {

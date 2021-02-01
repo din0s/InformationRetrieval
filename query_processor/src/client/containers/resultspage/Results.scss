@@ -1,16 +1,29 @@
 .Results {
-  > .SearchForm {
-    align-items: center;
+  > span {
     display: flex;
-    padding: 16px;
+    flex-direction: row;
+    justify-content: space-between;
 
-    > form {
-      height: 28px;
+    > .SearchForm {
+      align-items: center;
+      display: flex;
+      padding: 16px;
+
+      > form {
+        height: 28px;
+      }
+
+      img {
+        height: 32px;
+        margin-right: 16px;
+      }
     }
 
-    img {
-      height: 32px;
-      margin-right: 16px;
+    > button {
+      cursor: pointer;
+      height: 28px;
+      margin-top: 20px;
+      margin-right: 30px;
     }
   }
 
@@ -64,12 +77,18 @@
       height: 20px;
     }
 
-    &_up:hover {
-      color: green;
+    &_up {
+      &:hover,
+      &_pressed {
+        color: green;
+      }
     }
 
-    &_down:hover {
-      color: red;
+    &_down {
+      &:hover,
+      &_pressed {
+        color: red;
+      }
     }
   }
 

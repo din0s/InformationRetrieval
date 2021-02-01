@@ -2,12 +2,17 @@ import stopwords from "../stopwords.js";
 import natural from "natural";
 
 const preprocess = (query) => {
-  return query
-    .split(/\s+/g)
-    .map((w) => w.toLowerCase())
-    .map((w) => w.replace(/[^\w]/g, ""))
-    .filter((w) => !stopwords.includes(w))
-    .map((w) => natural.PorterStemmer.stem(w));
+  const res = {};
+  Object.keys(query).forEach((term) => {
+    let processed = term.toLowerCase().replace(/[^\w]/g, "");
+    if (!stopwords.includes(processed)) {
+      processed = natural.PorterStemmer.stem(processed);
+    }
+    const prev = res[processed] || 0;
+    res[processed] = prev + query[term];
+  });
+
+  return res;
 };
 
 export default preprocess;

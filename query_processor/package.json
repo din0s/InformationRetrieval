@@ -4,7 +4,7 @@
   "description": "",
   "main": "./src/server/index.js",
   "scripts": {
-    "react-start": "react-scripts start",
+    "react-start": "cross-env BROWSER=none react-scripts start",
     "react-build": "react-scripts build",
     "express-start": "npm run express-build && node dist/index.js",
     "express-build": "rimraf dist && babel src/server -d dist/index.js",
