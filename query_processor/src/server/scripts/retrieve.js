@@ -3,7 +3,9 @@ import Heap from "heap";
 import path from "path";
 import strToTuple from "./str-to-tuple";
 import webpage from "../webpage";
-import cosine from "./cosine";
+import score from "./score";
+
+const threadCount = process.env.THREADS || 1;
 
 let indexPath = process.env.INDEXER_PATH || "indexer/index.json";
 indexPath = path.resolve(process.cwd(), "..", indexPath);
@@ -42,14 +44,25 @@ webpage.find().then((docs) => {
   });
 });
 
-const retrieve = (q, k, excludedIds) => {
-  const scoredDocs = [];
-  docIds
-    .filter((_id) => !excludedIds.includes(_id))
-    .forEach((_id) => {
-      const score = cosine(q, _id, { index, docSizes, n_i, N });
-      scoredDocs.push({ _id, score });
-    });
+const retrieve = async (q, k, excludedIds) => {
+  const chunks = [];
+  const chunkSize = Math.ceil(N / threadCount);
+  for (let i = 0; i < threadCount; ++i) {
+    const base = i * chunkSize;
+    chunks.push(
+      docIds
+        .slice(base, base + chunkSize)
+        .filter((_id) => !excludedIds.includes(_id))
+    );
+  }
+
+  const scoredDocs = (
+    await Promise.all(
+      chunks.map(async (chunk) => {
+        return await score(q, chunk, { index, docSizes, n_i, N });
+      })
+    )
+  ).flat();
 
   const heap = new Heap((r1, r2) => r1.score - r2.score);
   for (let i = 0; i < k; ++i) {

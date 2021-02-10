@@ -6,6 +6,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
+import java.util.Spliterators;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -26,16 +27,11 @@ public class Database {
         this.col = database.getCollection(collection);
     }
 
-    Stream<Document> stream() {
-        return stream(false);
-    }
-
-    Stream<Document> parallelStream() {
-        return stream(true);
-    }
-
-    private Stream<Document> stream(boolean parallel) {
-        return StreamSupport.stream(this.col.find().spliterator(), parallel);
+    Stream<Document> stream(boolean parallel) {
+        return StreamSupport.stream(
+                Spliterators.spliterator(this.col.find().iterator(), this.col.estimatedDocumentCount(), 0),
+                parallel
+        );
     }
 
     void save(Document doc) {

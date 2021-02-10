@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -21,13 +23,18 @@ class Indexer {
     @JsonSerialize(keyUsing = TermTupleSerializer.class)
     private final Map<String, List<TermTuple>> index;
 
-    Indexer(String colName) {
+    Indexer(String colName) throws ExecutionException, InterruptedException {
         this.db = new Database(colName);
         this.index = buildIndex();
     }
 
-    private Map<String, List<TermTuple>> buildIndex() {
-        return db.stream()
+    private Map<String, List<TermTuple>> buildIndex() throws ExecutionException, InterruptedException {
+        String threadCount = System.getenv("THREADS");
+        int threads = threadCount == null ? 1 : Integer.parseInt(threadCount);
+        ForkJoinPool pool = new ForkJoinPool(threads);
+        System.out.printf("Running with %d threads.%n", pool.getParallelism());
+
+        return pool.submit(() -> db.stream(threads > 1)
                 .flatMap(doc -> {
                     @SuppressWarnings("unchecked")
                     List<String> content = doc.get("content", List.class);
@@ -42,7 +49,7 @@ class Indexer {
                 }).collect(Collectors.groupingBy(
                         TermTriplet::getTerm,
                         Collectors.mapping(TermTriplet::getTuple, Collectors.toList())
-                ));
+                ))).get();
     }
 
     public void writeToFile(String indexPath) throws IOException {

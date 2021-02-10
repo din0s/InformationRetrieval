@@ -1,9 +1,10 @@
 package me.din0s;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {
         boolean read = args.length != 0 && args[0].equalsIgnoreCase("--read");
         String indexPath = args.length <= 1 ? "./indexer/index.json" : args[1];
         if (read) {

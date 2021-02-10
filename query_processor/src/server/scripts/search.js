@@ -10,8 +10,8 @@ const search = async (query, k) => {
 };
 
 const searchWithFreqs = async (query, k, excludedIds) => {
-  const result = await Promise.all(
-    retrieve(query, k, excludedIds)
+  return await Promise.all(
+    (await retrieve(query, k, excludedIds))
       .filter((d) => d.score > 0)
       .sort((d1, d2) => d2.score - d1.score)
       .map(async (doc) => {
@@ -29,7 +29,6 @@ const searchWithFreqs = async (query, k, excludedIds) => {
         return { _id, url, title, summary };
       })
   );
-  return result;
 };
 
 export { search, searchWithFreqs };
